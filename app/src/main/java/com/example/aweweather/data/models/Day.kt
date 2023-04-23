@@ -3,11 +3,11 @@ package com.example.aweweather.data.models
 data class Day(
     val clouds: Int,
     val deg: Int,
-    val dt: Int,
+    val dt: Long,
     val feels_like: FeelsLike,
     val gust: Double,
     val humidity: Int,
-    val pop: Int,
+    val pop: Double,
     val pressure: Int,
     val rain: Double,
     val speed: Double,

@@ -56,11 +56,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.getWeatherByGeo(Coord(it.latitude, it.longitude))
             viewModel.getWeatherForecast(Coord(it.latitude, it.longitude))
         }
-
-
-        binding.fab.setOnClickListener {
-            viewModel.getWeatherByCity("lyon")
-        }
     }
 
     private fun checkPermissions() {
