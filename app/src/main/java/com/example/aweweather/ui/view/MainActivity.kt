@@ -1,26 +1,33 @@
 package com.example.aweweather.ui.view
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
 import com.example.aweweather.R
-import com.example.aweweather.data.models.Main
+import com.example.aweweather.data.models.Coord
 import com.example.aweweather.databinding.ActivityMainBinding
 import com.example.aweweather.ui.view.viewmodel.MainActivityViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private val viewModel : MainActivityViewModel by viewModel()
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -29,12 +36,51 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
+        checkPermissions()
+
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        fusedLocationClient.lastLocation.addOnSuccessListener {
+            Timber.d("Location found: ${it.latitude}, ${it.longitude}")
+            Toast.makeText(
+                this@MainActivity,
+                "location found ${it.latitude}, ${it.longitude}",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            //test
+            viewModel.getWeatherByGeo(Coord(it.latitude, it.longitude))
+            viewModel.getWeatherForecast(Coord(it.latitude, it.longitude))
+        }
+
+
         binding.fab.setOnClickListener {
-            viewModel.getWeather()
+            viewModel.getWeatherByCity("lyon")
+        }
+    }
+
+    private fun checkPermissions() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            Timber.d("Request location permissions")
+            return
+        }
+    }
+
+    val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            isGranted: Boolean ->
+        if (isGranted) {
+            //Continue
+        } else {
+            //Inform user of mistake
         }
     }
 

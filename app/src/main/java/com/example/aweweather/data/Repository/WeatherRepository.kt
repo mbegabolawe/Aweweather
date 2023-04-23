@@ -1,6 +1,6 @@
 package com.example.aweweather.data.Repository
 
-import com.example.aweweather.Constants
+import com.example.aweweather.data.models.WeatherForecast
 import com.example.aweweather.data.models.WeatherResponse
 import com.example.aweweather.data.services.NetworkResult
 import com.example.aweweather.data.services.WeatherService
@@ -28,6 +28,20 @@ class WeatherRepository(val api: WeatherService) {
         emit(NetworkResult.Loading())
 
         with (api.getWeatherByCity(city)) {
+            if (isSuccessful) {
+                emit(NetworkResult.Success(body()))
+            } else {
+                emit(NetworkResult.Error(errorBody()?.string()))
+            }
+        }
+    }.catch {
+        emit(NetworkResult.Error(it.localizedMessage))
+    }
+
+    suspend fun getWeatherForecast(lat: String, lon: String) = flow<NetworkResult<WeatherForecast>> {
+        emit(NetworkResult.Loading())
+
+        with(api.getWeatherForecastByGeo(lat, lon)) {
             if (isSuccessful) {
                 emit(NetworkResult.Success(body()))
             } else {
