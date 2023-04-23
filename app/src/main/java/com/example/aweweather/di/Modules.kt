@@ -2,7 +2,7 @@ package com.example.aweweather.di
 
 import android.content.Context
 import com.example.aweweather.Constants
-import com.example.aweweather.data.Repository.WeatherRepository
+import com.example.aweweather.data.repository.WeatherRepository
 import com.example.aweweather.data.services.Interceptor.NetworkConnectionInterceptor
 import com.example.aweweather.data.services.Interceptor.QueryParamInterceptor
 import com.example.aweweather.data.services.WeatherService

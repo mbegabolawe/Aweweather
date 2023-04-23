@@ -67,6 +67,17 @@ class MainActivity : AppCompatActivity() {
         viewModel.loading.observe(this) {
             binding.loader.visibility = if (it) View.VISIBLE else View.GONE
         }
+
+        viewModel.error.observe(this) {
+            val builder = AlertDialog.Builder(this)
+                .setTitle(getString(R.string.error))
+                .setMessage(it)
+                .setPositiveButton(getString(R.string.ok)) { dialogInterface, i ->
+                    finish()
+                    dialogInterface.dismiss()
+                }
+            builder.create().show()
+        }
     }
 
     @SuppressLint("MissingPermission")

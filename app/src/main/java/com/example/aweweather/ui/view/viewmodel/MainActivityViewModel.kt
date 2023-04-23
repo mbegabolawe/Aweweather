@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aweweather.R
-import com.example.aweweather.data.Repository.WeatherRepository
+import com.example.aweweather.data.repository.WeatherRepository
 import com.example.aweweather.data.models.Coord
 import com.example.aweweather.data.models.WeatherForecast
 import com.example.aweweather.data.models.WeatherResponse
@@ -37,14 +37,21 @@ class MainActivityViewModel(private val weatherRepository: WeatherRepository): V
     val loading : LiveData<Boolean>
     get() = _loading
 
+    private val _error = MutableLiveData<String>()
+    val error : LiveData<String>
+        get() = _error
+
     //To be used for search capability
     fun getWeatherByCity(city: String) {
         viewModelScope.launch(Dispatchers.IO) {
             weatherRepository.getWeatherByCity(city).collect {
                 when (it) {
                     is NetworkResult.Error -> {
-                        Timber.d("Error: ${it.message}")
                         _loading.postValue(false)
+                        it.message?.let { message ->
+                            Timber.d("Error: ${it.message}")
+                            _error.postValue(message)
+                        }
                     }
                     is NetworkResult.Loading -> {
                         _loading.postValue(true)
@@ -68,8 +75,10 @@ class MainActivityViewModel(private val weatherRepository: WeatherRepository): V
             weatherRepository.getWeatherByGeo(coord.lat.toString(), coord.lon.toString()).collect{
                 when (it) {
                     is NetworkResult.Error -> {
-                        Timber.d("Error: ${it.message}")
-                        _loading.postValue(false)
+                        it.message?.let { message ->
+                            Timber.d("Error: ${it.message}")
+                            _error.postValue(message)
+                        }
                     }
                     is NetworkResult.Loading -> {
                         Timber.d("loading")
@@ -95,8 +104,10 @@ class MainActivityViewModel(private val weatherRepository: WeatherRepository): V
             weatherRepository.getWeatherForecast(coord.lat.toString(), coord.lon.toString()).collect{
                 when (it) {
                     is NetworkResult.Error -> {
-                        Timber.d("Error: ${it.message}")
-                        _loading.postValue(false)
+                        it.message?.let { message ->
+                            Timber.d("Error: ${it.message}")
+                            _error.postValue(message)
+                        }
                     }
                     is NetworkResult.Loading -> {
                         Timber.d("loading")

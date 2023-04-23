@@ -1,4 +1,4 @@
-package com.example.aweweather.data.Repository
+package com.example.aweweather.data.repository
 
 import com.example.aweweather.data.models.WeatherForecast
 import com.example.aweweather.data.models.WeatherResponse

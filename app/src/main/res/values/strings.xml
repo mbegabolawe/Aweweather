@@ -12,4 +12,6 @@
     <string name="permission_body">Location permission is required to use this app</string>
     <string name="grant">grant</string>
     <string name="cancel">cancel</string>
+    <string name="error">we\'ve got an error</string>
+    <string name="ok">ok</string>
 </resources>
