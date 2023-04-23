@@ -8,4 +8,8 @@
     <string name="previous">Previous</string>
 
     <string name="degrees">%1$.1fº</string>
+    <string name="permission_header">Please enable permissions</string>
+    <string name="permission_body">Location permission is required to use this app</string>
+    <string name="grant">grant</string>
+    <string name="cancel">cancel</string>
 </resources>

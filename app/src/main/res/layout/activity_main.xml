@@ -22,4 +22,10 @@
 
     <include layout="@layout/content_main" />
 
+    <ProgressBar
+        android:id="@+id/loader"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

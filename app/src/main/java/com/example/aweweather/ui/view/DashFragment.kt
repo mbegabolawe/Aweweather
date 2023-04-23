@@ -23,7 +23,7 @@ class DashFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         adapter = ForecastAdapter()
         binding.weatherForecastList.adapter = adapter
@@ -34,11 +34,14 @@ class DashFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.currentWeather.observe(viewLifecycleOwner) {
-            binding.currentDegrees.text = getString(R.string.degrees, it.main.temp)
-            binding.currentWeather.text = it.weather[0].main
-            binding.minTemp.text = getString(R.string.degrees, it.main.temp_min)
-            binding.maxTemp.text = getString(R.string.degrees, it.main.temp_max)
-            binding.currentTemp.text = getString(R.string.degrees, it.main.temp)
+            with(binding) {
+                currentDegrees.text = getString(R.string.degrees, it.main.temp)
+                currentWeather.text = it.weather[0].main
+                currentWeatherDetails.visibility = View.VISIBLE
+                minTemp.text = getString(R.string.degrees, it.main.temp_min)
+                maxTemp.text = getString(R.string.degrees, it.main.temp_max)
+                currentTemp.text = getString(R.string.degrees, it.main.temp)
+            }
 
             context?.let { context ->
                 it.weather.get(0).let {
@@ -75,8 +78,6 @@ class DashFragment : Fragment() {
                         }
                         //default
                         else -> {
-                            Glide.with(context).load(R.drawable.forest_rainy)
-                                .into(binding.weatherBackground)
                             binding.mainLayout.setBackgroundColor(
                                 resources.getColor(
                                     R.color.rainy,

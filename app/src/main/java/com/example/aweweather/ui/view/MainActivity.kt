@@ -1,14 +1,18 @@
 package com.example.aweweather.ui.view
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
+import android.view.View
+import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -44,17 +48,33 @@ class MainActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        fetchWeatherByLocation()
+
+        viewModel.title.observe(this) {
+                binding.toolbar.title = it
+        }
+
+        //Use dynamic primary color to set Toolbar and Status bar colors
+        viewModel.primaryColor.observe(this) {
+            binding.toolbar.setBackgroundColor(ContextCompat.getColor(this@MainActivity, it))
+
+            with (window) {
+                addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                statusBarColor = ContextCompat.getColor(this@MainActivity, it)
+            }
+        }
+
+        viewModel.loading.observe(this) {
+            binding.loader.visibility = if (it) View.VISIBLE else View.GONE
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun fetchWeatherByLocation() {
         fusedLocationClient.lastLocation.addOnSuccessListener {
             Timber.d("Location found: ${it.latitude}, ${it.longitude}")
-            Toast.makeText(
-                this@MainActivity,
-                "location found ${it.latitude}, ${it.longitude}",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            //test
-            viewModel.getWeatherByGeo(Coord(it.latitude, it.longitude))
-            viewModel.getWeatherForecast(Coord(it.latitude, it.longitude))
+            viewModel.fetchWeather(Coord(it.latitude, it.longitude))
+            //Add: Store location & handle failure
         }
     }
 
@@ -64,31 +84,37 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             Timber.d("Request location permissions")
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             return
         }
     }
 
-    val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             isGranted: Boolean ->
         if (isGranted) {
-            //Continue
+            fetchWeatherByLocation()
         } else {
-            //Inform user of mistake
+            val builder = AlertDialog.Builder(this)
+                .setTitle(getString(R.string.permission_header))
+                .setMessage(getString(R.string.permission_body))
+                .setPositiveButton(getString(R.string.grant)) { dialogInterface, i ->
+                    checkPermissions()
+                }
+                .setNegativeButton(getString(R.string.cancel)) { dialogInterface, i ->
+                    dialogInterface.dismiss()
+                    finish()
+                }
+            builder.create().show()
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)

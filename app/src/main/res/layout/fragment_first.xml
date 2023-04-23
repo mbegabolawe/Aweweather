@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:scaleType="fitXY"
-        android:src="@drawable/forest_rainy"
+        tools:src="@drawable/forest_rainy"
         app:layout_constraintBottom_toTopOf="@id/current_weather_details"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,7 +48,8 @@
         android:paddingVertical="8dp"
         app:layout_constraintBottom_toBottomOf="@id/guideline"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="0dp"

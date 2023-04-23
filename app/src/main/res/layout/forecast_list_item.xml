@@ -6,15 +6,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:background="@android:color/transparent"
-    android:padding="16dp">
+    android:paddingVertical="16dp"
+    android:paddingHorizontal="32dp">
 
     <TextView
         android:id="@+id/day"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:gravity="center"
+        android:gravity="center|start"
         android:layout_weight="1"
-        tools:text="Tuesday"/>
+        tools:text="Tuesday" />
 
     <ImageView
         android:id="@+id/weather_image"
