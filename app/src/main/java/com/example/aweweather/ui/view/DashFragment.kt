@@ -33,67 +33,62 @@ class DashFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.currentWeather.observe(viewLifecycleOwner) {
+        viewModel.weatherModel.observe(viewLifecycleOwner) {
             with(binding) {
-                currentDegrees.text = getString(R.string.degrees, it.main.temp)
-                currentWeather.text = it.weather[0].main
+                currentDegrees.text = getString(R.string.degrees, it.temp)
+                currentWeather.text = it.main
                 currentWeatherDetails.visibility = View.VISIBLE
-                minTemp.text = getString(R.string.degrees, it.main.temp_min)
-                maxTemp.text = getString(R.string.degrees, it.main.temp_max)
-                currentTemp.text = getString(R.string.degrees, it.main.temp)
+                minTemp.text = getString(R.string.degrees, it.temp_min)
+                maxTemp.text = getString(R.string.degrees, it.temp_max)
+                currentTemp.text = getString(R.string.degrees, it.temp)
             }
 
             context?.let { context ->
-                it.weather.get(0).let {
-                    when (it.main) {
-                        "Rain" -> {
-                            Glide.with(context).load(R.drawable.forest_rainy)
-                                .into(binding.weatherBackground)
-                            binding.mainLayout.setBackgroundColor(
-                                resources.getColor(
-                                    R.color.rainy,
-                                    null
-                                )
+                when (it.main) {
+                    "Rain" -> {
+                        Glide.with(context).load(R.drawable.forest_rainy)
+                            .into(binding.weatherBackground)
+                        binding.mainLayout.setBackgroundColor(
+                            resources.getColor(
+                                R.color.rainy,
+                                null
                             )
-                        }
-                        "Clear" -> {
-                            Glide.with(context).load(R.drawable.forest_sunny)
-                                .into(binding.weatherBackground)
-                            binding.mainLayout.setBackgroundColor(
-                                resources.getColor(
-                                    R.color.sunny,
-                                    null
-                                )
+                        )
+                    }
+                    "Clear" -> {
+                        Glide.with(context).load(R.drawable.forest_sunny)
+                            .into(binding.weatherBackground)
+                        binding.mainLayout.setBackgroundColor(
+                            resources.getColor(
+                                R.color.sunny,
+                                null
                             )
-                        }
-                        "Clouds" -> {
-                            Glide.with(context).load(R.drawable.forest_cloudy)
-                                .into(binding.weatherBackground)
-                            binding.mainLayout.setBackgroundColor(
-                                resources.getColor(
-                                    R.color.cloudy,
-                                    null
-                                )
+                        )
+                    }
+                    "Clouds" -> {
+                        Glide.with(context).load(R.drawable.forest_cloudy)
+                            .into(binding.weatherBackground)
+                        binding.mainLayout.setBackgroundColor(
+                            resources.getColor(
+                                R.color.cloudy,
+                                null
                             )
-                        }
-                        //default
-                        else -> {
-                            binding.mainLayout.setBackgroundColor(
-                                resources.getColor(
-                                    R.color.rainy,
-                                    null
-                                )
+                        )
+                    }
+                    //default
+                    else -> {
+                        binding.mainLayout.setBackgroundColor(
+                            resources.getColor(
+                                R.color.rainy,
+                                null
                             )
-                        }
+                        )
                     }
                 }
             }
 
-            viewModel.weatherForecast.observe(viewLifecycleOwner) {
-                if (it.list.isNotEmpty()) {
-                    adapter.submitList(it.list)
-                }
-            }
+            adapter.submitList(it.weather)
+
         }
     }
 

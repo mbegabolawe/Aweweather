@@ -5,10 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aweweather.R
-import com.example.aweweather.data.repository.WeatherRepository
 import com.example.aweweather.data.models.Coord
 import com.example.aweweather.data.models.WeatherForecast
+import com.example.aweweather.data.models.WeatherModel
 import com.example.aweweather.data.models.WeatherResponse
+import com.example.aweweather.data.repository.WeatherRepository
 import com.example.aweweather.data.services.NetworkResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,10 +21,13 @@ class MainActivityViewModel(private val weatherRepository: WeatherRepository): V
     val currentWeather : LiveData<WeatherResponse>
     get() = _currentWeather
 
-
     private val _weatherForecast = MutableLiveData<WeatherForecast>()
     val weatherForecast: LiveData<WeatherForecast>
     get() = _weatherForecast
+
+    private val _weatherModel = MutableLiveData<WeatherModel>()
+    val weatherModel: LiveData<WeatherModel>
+        get() = _weatherModel
 
     private val _title = MutableLiveData<String>()
     val title : LiveData<String>
@@ -125,6 +129,35 @@ class MainActivityViewModel(private val weatherRepository: WeatherRepository): V
         }
     }
 
+    /**
+     * Ability to use singular specific model
+     */
+    fun getWeatherModel(coord: Coord) {
+        viewModelScope.launch(Dispatchers.IO) {
+            weatherRepository.getWeatherResponse(coord.lat.toString(), coord.lon.toString()).collect {
+                when (it) {
+                    is NetworkResult.Error -> {
+                        it.message?.let { message ->
+                            Timber.d("Error: ${it.message}")
+                            _error.postValue(message)
+                        }
+                    }
+                    is NetworkResult.Loading -> {
+                        Timber.d("loading")
+                        _loading.postValue(true)
+                    }
+                    is NetworkResult.Success -> {
+                        _loading.postValue(false)
+                        it.data?.let { response ->
+                            Timber.d("Successfully got weather model: ${response}")
+                            _weatherModel.postValue(response)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun setPrimaryColor(main: String) {
         val color = when (main) {
             "Rain" -> R.color.rainy
@@ -136,8 +169,10 @@ class MainActivityViewModel(private val weatherRepository: WeatherRepository): V
         _primaryColor.postValue(color)
     }
 
+    /**
+     * Replaced by getWeatherModel()
+     */
     fun fetchWeather(coord: Coord) {
-        //Improve: merge call flows in repo
         getWeatherByGeo(coord)
         getWeatherForecast(coord)
     }

@@ -2,6 +2,7 @@ package com.example.aweweather.ui.view
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
@@ -11,7 +12,6 @@ import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -24,7 +24,6 @@ import com.example.aweweather.ui.view.viewmodel.MainActivityViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,15 +39,13 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-        checkPermissions()
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        fetchWeatherByLocation()
+        checkPermissions()
 
         viewModel.title.observe(this) {
                 binding.toolbar.title = it
@@ -73,7 +70,7 @@ class MainActivity : AppCompatActivity() {
                 .setTitle(getString(R.string.error))
                 .setMessage(it)
                 .setPositiveButton(getString(R.string.ok)) { dialogInterface, i ->
-                    finish()
+//                    finish() //Handle errors differently for no connectivity
                     dialogInterface.dismiss()
                 }
             builder.create().show()
@@ -83,21 +80,40 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingPermission")
     private fun fetchWeatherByLocation() {
         fusedLocationClient.lastLocation.addOnSuccessListener {
-            Timber.d("Location found: ${it.latitude}, ${it.longitude}")
-            viewModel.fetchWeather(Coord(it.latitude, it.longitude))
+            viewModel.getWeatherModel(Coord(it.latitude, it.longitude))
             //Add: Store location & handle failure
         }
     }
 
+    //Show rationale to user for permission requirement before requesting directly
     private fun checkPermissions() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
+        when {
+            ContextCompat.checkSelfPermission(
+                this@MainActivity,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Timber.d("Request location permissions")
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            return
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                fetchWeatherByLocation()
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                AlertDialog.Builder(this)
+                    .setTitle("Location permission required")
+                    .setMessage("Location access is required to ensure a top notch experience, weather right where you are")
+                    .setPositiveButton(getString(R.string.ok)) { dialogInterface, i ->
+                        requestPermissionLauncher.launch(
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        )
+                    }
+                    .setNegativeButton(getString(R.string.cancel)) {dialogInterface, i ->
+                        dialogInterface.dismiss()
+                        viewModel.getWeatherByCity("Cape Town")
+                    }
+                    .show()
+            }
+            else -> {
+                requestPermissionLauncher.launch(
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            }
         }
     }
 
@@ -106,15 +122,17 @@ class MainActivity : AppCompatActivity() {
         if (isGranted) {
             fetchWeatherByLocation()
         } else {
+            //Redirect user to Settings and not launch permissions request
             val builder = AlertDialog.Builder(this)
                 .setTitle(getString(R.string.permission_header))
                 .setMessage(getString(R.string.permission_body))
-                .setPositiveButton(getString(R.string.grant)) { dialogInterface, i ->
-                    checkPermissions()
-                }
-                .setNegativeButton(getString(R.string.cancel)) { dialogInterface, i ->
+                .setPositiveButton(getString(R.string.ok)) { dialogInterface, i ->
                     dialogInterface.dismiss()
                     finish()
+                }
+                .setNegativeButton(getString(R.string.cancel))  { dialogInterface: DialogInterface, i: Int ->
+                    dialogInterface.dismiss()
+                    viewModel.getWeatherByCity("Cape Town")
                 }
             builder.create().show()
         }
